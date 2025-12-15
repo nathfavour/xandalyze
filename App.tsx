@@ -24,6 +24,7 @@ import { AIInsightsPanel } from './components/AIInsightsPanel';
 import { ThemeToggle } from './components/ThemeToggle';
 import { ExportMenu } from './components/ExportMenu';
 import { LoadingSkeleton } from './components/LoadingSkeleton';
+import { SettingsPanel } from './components/SettingsPanel';
 import { useNotification } from './contexts/NotificationContext';
 import { NAV_ITEMS } from './constants';
 
@@ -32,6 +33,7 @@ function App() {
   const [nodes, setNodes] = useState<PNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { addNotification } = useNotification();
   
   // Gemini State
@@ -43,6 +45,11 @@ function App() {
   // AI Analytics State
   const [aiAnalytics, setAiAnalytics] = useState<AIAnalytics | null>(null);
   const [showAiInsights, setShowAiInsights] = useState(true);
+  
+  // Settings State
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(30000);
 
   const loadData = async () => {
     setLoading(true);
@@ -65,10 +72,12 @@ function App() {
 
   useEffect(() => {
     loadData();
-    // Refresh every 30s
-    const interval = setInterval(loadData, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    // Refresh at configured interval
+    if (autoRefresh) {
+      const interval = setInterval(loadData, refreshInterval);
+      return () => clearInterval(interval);
+    }
+  }, [autoRefresh, refreshInterval]);
 
   const handleGenerateReport = async () => {
     setAiLoading(true);
@@ -135,8 +144,18 @@ function App() {
 
   return (
     <div className="flex h-screen bg-bg-primary text-foreground overflow-hidden transition-colors duration-300">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
-      <aside className="w-20 lg:w-64 bg-surface-primary border-r border-border flex flex-col items-center lg:items-stretch transition-all duration-300 z-20 shadow-xl">
+      <aside className={`fixed lg:relative w-64 h-full bg-surface-primary border-r border-border flex flex-col transition-all duration-300 z-40 transform ${
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      } lg:w-20 lg:w-64`}>
         <div className="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-border">
           <div className="w-8 h-8 bg-gradient-to-tr from-primary to-accent rounded-lg flex items-center justify-center shadow-lg">
              <Activity className="text-primary-foreground" size={20} />
@@ -169,7 +188,10 @@ function App() {
         </nav>
 
         <div className="p-4 border-t border-border">
-          <button className="flex items-center justify-center lg:justify-start w-full text-muted hover:text-foreground transition-colors p-2 rounded-lg hover:bg-surface-secondary/50">
+          <button 
+            onClick={() => setIsSettingsOpen(true)}
+            className="flex items-center justify-center lg:justify-start w-full text-muted hover:text-foreground transition-colors p-2 rounded-lg hover:bg-surface-secondary/50"
+          >
             <Settings size={20} />
             <span className="ml-3 text-sm font-medium hidden lg:block">Settings</span>
           </button>
@@ -179,9 +201,17 @@ function App() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden relative">
         {/* Header */}
-        <header className="h-16 bg-surface-primary/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-8 z-10 shadow-sm">
-          <h2 className="text-lg font-semibold text-foreground capitalize">{activeTab === 'map' ? 'Network Map' : 'Dashboard Overview'}</h2>
-          <div className="flex items-center space-x-4">
+        <header className="h-16 bg-surface-primary/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-4 sm:px-8 z-10 shadow-sm">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="lg:hidden p-2 hover:bg-surface-secondary rounded-lg transition-colors text-foreground"
+            >
+              <LayoutDashboard size={20} />
+            </button>
+            <h2 className="text-lg font-semibold text-foreground capitalize">{activeTab === 'map' ? 'Network Map' : 'Dashboard Overview'}</h2>
+          </div>
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <span className="text-xs text-muted font-mono hidden sm:block">
               Last update: {lastRefreshed ? lastRefreshed.toLocaleTimeString() : '...'}
             </span>
@@ -367,6 +397,16 @@ function App() {
           </div>
         </div>
       )}
+      
+      {/* Settings Panel */}
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        autoRefresh={autoRefresh}
+        onAutoRefreshChange={setAutoRefresh}
+        refreshInterval={refreshInterval}
+        onRefreshIntervalChange={setRefreshInterval}
+      />
     </div>
   );
 }
