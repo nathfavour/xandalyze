@@ -21,7 +21,7 @@ export interface AIAnalytics {
 
 export class AIAnalyticsEngine {
   static analyzeNetworkHealth(nodes: PNode[]): AIAnalytics {
-    const activeNodes = nodes.filter(n => n.status === 'Active');
+    const activeNodes = nodes.filter(n => n.status === NodeStatus.ACTIVE);
     const activeRatio = activeNodes.length / (nodes.length || 1);
     const avgLatency = nodes.reduce((acc, n) => acc + n.latency, 0) / (nodes.length || 1);
     const avgUptime = nodes.reduce((acc, n) => acc + (n.uptime || 0), 0) / (nodes.length || 1);
@@ -34,13 +34,13 @@ export class AIAnalyticsEngine {
     );
 
     // Detect anomalies
-    const anomalies = this.detectAnomalies(nodes);
+    const anomalies = this.detectAnomalies(nodes, avgLatency);
     
     // Generate predictions
-    const predictedIssues = this.predictIssues(nodes);
+    const predictedIssues = this.predictIssues(nodes, activeRatio);
     
     // Find optimization opportunities
-    const optimizationOpportunities = this.findOptimizations(nodes);
+    const optimizationOpportunities = this.findOptimizations(nodes, avgLatency);
 
     // Determine trend
     const performanceTrend: 'improving' | 'stable' | 'degrading' = 
@@ -62,9 +62,8 @@ export class AIAnalyticsEngine {
     };
   }
 
-  private static detectAnomalies(nodes: PNode[]): AIInsight[] {
+  private static detectAnomalies(nodes: PNode[], avgLatency: number): AIInsight[] {
     const anomalies: AIInsight[] = [];
-    const avgLatency = nodes.reduce((acc, n) => acc + n.latency, 0) / (nodes.length || 1);
 
     // High latency nodes
     const highLatencyNodes = nodes.filter(n => n.latency > avgLatency * 2 && n.latency > 100);
@@ -81,7 +80,7 @@ export class AIAnalyticsEngine {
     }
 
     // Low uptime nodes
-    const lowUptimeNodes = nodes.filter(n => (n.uptime || 0) < 95 && n.status === 'Active');
+    const lowUptimeNodes = nodes.filter(n => (n.uptime || 0) < 95 && n.status === NodeStatus.ACTIVE);
     if (lowUptimeNodes.length > 0) {
       anomalies.push({
         type: 'anomaly',
@@ -111,10 +110,8 @@ export class AIAnalyticsEngine {
     return anomalies;
   }
 
-  private static predictIssues(nodes: PNode[]): AIInsight[] {
+  private static predictIssues(nodes: PNode[], activeRatio: number): AIInsight[] {
     const predictions: AIInsight[] = [];
-    const activeNodes = nodes.filter(n => n.status === 'Active');
-    const activeRatio = activeNodes.length / (nodes.length || 1);
 
     if (activeRatio < 0.85) {
       predictions.push({
@@ -145,9 +142,8 @@ export class AIAnalyticsEngine {
     return predictions;
   }
 
-  private static findOptimizations(nodes: PNode[]): AIInsight[] {
+  private static findOptimizations(nodes: PNode[], avgLatency: number): AIInsight[] {
     const optimizations: AIInsight[] = [];
-    const avgLatency = nodes.reduce((acc, n) => acc + n.latency, 0) / (nodes.length || 1);
 
     if (avgLatency > 100) {
       optimizations.push({
