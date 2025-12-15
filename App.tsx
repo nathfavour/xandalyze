@@ -16,11 +16,15 @@ import { PNode, NetworkStats, GeminiReport } from './types';
 import { fetchPNodes } from './services/pNodeService';
 import { generateNetworkReport } from './services/geminiService';
 import { AIAnalyticsEngine, AIAnalytics } from './services/aiAnalyticsService';
+import { ExportService } from './services/exportService';
 import { StatCard } from './components/StatCard';
 import { NodeTable } from './components/NodeTable';
 import { StatusPieChart, LatencyChart } from './components/DashboardCharts';
 import { AIInsightsPanel } from './components/AIInsightsPanel';
 import { ThemeToggle } from './components/ThemeToggle';
+import { ExportMenu } from './components/ExportMenu';
+import { LoadingSkeleton } from './components/LoadingSkeleton';
+import { useNotification } from './contexts/NotificationContext';
 import { NAV_ITEMS } from './constants';
 
 function App() {
@@ -28,6 +32,7 @@ function App() {
   const [nodes, setNodes] = useState<PNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const { addNotification } = useNotification();
   
   // Gemini State
   const [aiReport, setAiReport] = useState<GeminiReport | null>(null);
@@ -41,15 +46,21 @@ function App() {
 
   const loadData = async () => {
     setLoading(true);
-    const data = await fetchPNodes();
-    setNodes(data);
-    setLastRefreshed(new Date());
-    
-    // Generate AI analytics
-    const analytics = AIAnalyticsEngine.analyzeNetworkHealth(data);
-    setAiAnalytics(analytics);
-    
-    setLoading(false);
+    try {
+      const data = await fetchPNodes();
+      setNodes(data);
+      setLastRefreshed(new Date());
+      
+      // Generate AI analytics
+      const analytics = AIAnalyticsEngine.analyzeNetworkHealth(data);
+      setAiAnalytics(analytics);
+      
+      addNotification('success', 'Network data refreshed successfully');
+    } catch (error) {
+      addNotification('error', 'Failed to load network data');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -74,10 +85,36 @@ function App() {
     try {
       const report = await generateNetworkReport(nodes);
       setAiReport(report);
+      addNotification('success', 'AI report generated successfully');
     } catch (err) {
       setAiError("Failed to generate AI report. The service might be unavailable.");
+      addNotification('error', 'Failed to generate AI report');
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    ExportService.exportToCSV(nodes);
+    addNotification('success', 'Data exported to CSV');
+  };
+
+  const handleExportJSON = () => {
+    if (aiAnalytics) {
+      ExportService.exportAIReport(aiAnalytics, nodes, calculateStats(), aiReport || undefined);
+      addNotification('success', 'AI report exported to JSON');
+    } else {
+      ExportService.exportToJSON({ nodes, stats: calculateStats() });
+      addNotification('success', 'Data exported to JSON');
+    }
+  };
+
+  const handleExportMarkdown = () => {
+    if (aiAnalytics) {
+      ExportService.exportToMarkdown(aiAnalytics, nodes, calculateStats());
+      addNotification('success', 'Report exported to Markdown');
+    } else {
+      addNotification('warning', 'AI analytics not available');
     }
   };
 
@@ -148,6 +185,11 @@ function App() {
             <span className="text-xs text-muted font-mono hidden sm:block">
               Last update: {lastRefreshed ? lastRefreshed.toLocaleTimeString() : '...'}
             </span>
+            <ExportMenu
+              onExportCSV={handleExportCSV}
+              onExportJSON={handleExportJSON}
+              onExportMarkdown={handleExportMarkdown}
+            />
             <ThemeToggle />
             <button 
               onClick={loadData}
@@ -163,28 +205,32 @@ function App() {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-8 scroll-smooth bg-bg-secondary">
           
-          {/* AI Insights Toggle */}
-          {aiAnalytics && (
-            <div className="mb-6 flex justify-end">
-              <button
-                onClick={() => setShowAiInsights(!showAiInsights)}
-                className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-lg transition-all duration-200 font-medium"
-              >
-                <Brain size={18} />
-                {showAiInsights ? 'Hide' : 'Show'} AI Insights
-              </button>
-            </div>
-          )}
+          {loading && nodes.length === 0 ? (
+            <LoadingSkeleton />
+          ) : (
+            <>
+              {/* AI Insights Toggle */}
+              {aiAnalytics && (
+                <div className="mb-6 flex justify-end">
+                  <button
+                    onClick={() => setShowAiInsights(!showAiInsights)}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-lg transition-all duration-200 font-medium"
+                  >
+                    <Brain size={18} />
+                    {showAiInsights ? 'Hide' : 'Show'} AI Insights
+                  </button>
+                </div>
+              )}
 
-          {/* AI Insights Panel */}
-          {showAiInsights && (
-            <div className="mb-8">
-              <AIInsightsPanel analytics={aiAnalytics} loading={loading} />
-            </div>
-          )}
-          
-          {/* Top Stats Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {/* AI Insights Panel */}
+              {showAiInsights && (
+                <div className="mb-8">
+                  <AIInsightsPanel analytics={aiAnalytics} loading={loading} />
+                </div>
+              )}
+              
+              {/* Top Stats Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <StatCard 
               title="Total pNodes" 
               value={stats.totalNodes} 
@@ -233,6 +279,8 @@ function App() {
           <div className="h-[600px] mb-8">
             <NodeTable nodes={nodes} />
           </div>
+            </>
+          )}
         </div>
       </main>
 
