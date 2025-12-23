@@ -45,85 +45,85 @@ export const NodeTable: React.FC<NodeTableProps> = ({ nodes }) => {
   const getStatusBadge = (status: NodeStatus) => {
     switch (status) {
       case NodeStatus.ACTIVE:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><ShieldCheck size={12} className="mr-1"/> Active</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20"><ShieldCheck size={12} className="mr-1"/> Active</span>;
       case NodeStatus.DELINQUENT:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"><AlertCircle size={12} className="mr-1"/> Delinquent</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning border border-warning/20"><AlertCircle size={12} className="mr-1"/> Delinquent</span>;
       default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20"><WifiOff size={12} className="mr-1"/> Offline</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted/10 text-muted border border-border"><WifiOff size={12} className="mr-1"/> Offline</span>;
     }
   };
 
   return (
-    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 overflow-hidden flex flex-col h-full">
-      <div className="p-4 border-b border-slate-700/50 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h3 className="text-lg font-semibold text-white">pNode Registry</h3>
+    <div className="bg-surface-primary backdrop-blur-sm rounded-xl border border-border overflow-hidden flex flex-col h-full shadow-lg">
+      <div className="p-4 border-b border-border flex flex-col sm:flex-row justify-between items-center gap-4">
+        <h3 className="text-lg font-semibold text-foreground">pNode Registry</h3>
         <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
           <input
             type="text"
             placeholder="Search pubkey, version..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors placeholder:text-slate-600"
+            className="w-full bg-surface-secondary border border-border rounded-lg pl-10 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary transition-colors placeholder:text-muted"
           />
         </div>
       </div>
 
       <div className="overflow-x-auto flex-1">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-900/40 text-slate-400 text-xs uppercase font-semibold sticky top-0 z-10 backdrop-blur-md">
+          <thead className="bg-surface-secondary text-muted text-xs uppercase font-semibold sticky top-0 z-10 backdrop-blur-md">
             <tr>
-              <th className="px-6 py-4 cursor-pointer hover:text-indigo-400 transition-colors" onClick={() => handleSort('identityPubkey')}>
+              <th className="px-6 py-4 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('identityPubkey')}>
                 <div className="flex items-center">Node Identity <ArrowUpDown size={12} className="ml-1 opacity-50"/></div>
               </th>
-              <th className="px-6 py-4 cursor-pointer hover:text-indigo-400 transition-colors hidden sm:table-cell" onClick={() => handleSort('version')}>
+              <th className="px-6 py-4 cursor-pointer hover:text-primary transition-colors hidden sm:table-cell" onClick={() => handleSort('version')}>
                  <div className="flex items-center">Version <ArrowUpDown size={12} className="ml-1 opacity-50"/></div>
               </th>
-              <th className="px-6 py-4 cursor-pointer hover:text-indigo-400 transition-colors" onClick={() => handleSort('status')}>
+              <th className="px-6 py-4 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('status')}>
                  <div className="flex items-center">Status <ArrowUpDown size={12} className="ml-1 opacity-50"/></div>
               </th>
-               <th className="px-6 py-4 cursor-pointer hover:text-indigo-400 transition-colors hidden md:table-cell" onClick={() => handleSort('uptime')}>
+               <th className="px-6 py-4 cursor-pointer hover:text-primary transition-colors hidden md:table-cell" onClick={() => handleSort('uptime')}>
                  <div className="flex items-center">Uptime <ArrowUpDown size={12} className="ml-1 opacity-50"/></div>
               </th>
-              <th className="px-6 py-4 cursor-pointer hover:text-indigo-400 transition-colors text-right" onClick={() => handleSort('latency')}>
+              <th className="px-6 py-4 cursor-pointer hover:text-primary transition-colors text-right" onClick={() => handleSort('latency')}>
                  <div className="flex items-center justify-end">Latency <ArrowUpDown size={12} className="ml-1 opacity-50"/></div>
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700/30">
+          <tbody className="divide-y divide-border">
             {filteredAndSortedNodes.map((node, idx) => (
-              <tr key={node.identityPubkey + idx} className="hover:bg-slate-700/20 transition-colors group">
+              <tr key={node.identityPubkey + idx} className="hover:bg-surface-secondary/50 transition-colors group">
                 <td className="px-6 py-4">
                   <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 mr-3 text-xs font-bold border border-indigo-500/30">
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary mr-3 text-xs font-bold border border-primary/30">
                       {node.identityPubkey.substring(0,2)}
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-white font-mono truncate max-w-[140px] sm:max-w-[200px]" title={node.identityPubkey}>
+                      <div className="text-sm font-medium text-foreground font-mono truncate max-w-[140px] sm:max-w-[200px]" title={node.identityPubkey}>
                         {node.identityPubkey}
                       </div>
-                      <div className="text-xs text-slate-500 truncate max-w-[140px] hidden sm:block">
+                      <div className="text-xs text-muted truncate max-w-[140px] hidden sm:block">
                         {node.gossipAddr}
                       </div>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4 hidden sm:table-cell">
-                  <span className="text-sm text-slate-300 bg-slate-800 px-2 py-1 rounded border border-slate-700">{node.version || 'Unknown'}</span>
+                  <span className="text-sm text-foreground-secondary bg-surface-secondary px-2 py-1 rounded border border-border">{node.version || 'Unknown'}</span>
                 </td>
                 <td className="px-6 py-4">
                   {getStatusBadge(node.status)}
                 </td>
                  <td className="px-6 py-4 hidden md:table-cell">
                   <div className="flex items-center">
-                    <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden mr-2">
-                      <div className={`h-full rounded-full ${node.uptime && node.uptime > 90 ? 'bg-emerald-500' : 'bg-yellow-500'}`} style={{ width: `${node.uptime || 0}%` }}></div>
+                    <div className="w-16 h-1.5 bg-surface-tertiary rounded-full overflow-hidden mr-2">
+                      <div className={`h-full rounded-full ${node.uptime && node.uptime > 90 ? 'bg-success' : 'bg-warning'}`} style={{ width: `${node.uptime || 0}%` }}></div>
                     </div>
-                    <span className="text-xs text-slate-400">{node.uptime?.toFixed(1)}%</span>
+                    <span className="text-xs text-muted">{node.uptime?.toFixed(1)}%</span>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <span className={`text-sm font-mono ${node.latency < 50 ? 'text-emerald-400' : node.latency < 150 ? 'text-yellow-400' : 'text-rose-400'}`}>
+                  <span className={`text-sm font-mono ${node.latency < 50 ? 'text-success' : node.latency < 150 ? 'text-warning' : 'text-error'}`}>
                     {node.latency}ms
                   </span>
                 </td>
@@ -131,7 +131,7 @@ export const NodeTable: React.FC<NodeTableProps> = ({ nodes }) => {
             ))}
             {filteredAndSortedNodes.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                <td colSpan={5} className="px-6 py-12 text-center text-muted">
                   <div className="flex flex-col items-center">
                     <Search size={32} className="mb-2 opacity-50"/>
                     <p>No nodes found matching your criteria</p>
