@@ -9,7 +9,9 @@ import {
   Globe, 
   RefreshCw,
   Sparkles,
-  Bot
+  Bot,
+  Menu,
+  X
 } from 'lucide-react';
 import { PNode, NetworkStats, GeminiReport } from './types';
 import { fetchPNodes } from './services/pNodeService';
@@ -24,6 +26,7 @@ function App() {
   const [nodes, setNodes] = useState<PNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Gemini State
   const [aiReport, setAiReport] = useState<GeminiReport | null>(null);
